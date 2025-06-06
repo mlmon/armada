@@ -1,0 +1,23 @@
+defaultBaseImage: gcr.io/distroless/static-debian12:latest
+defaultPlatforms:
+  - linux/amd64
+  - linux/arm64
+
+builds:
+  - id: exdown
+    main: ./cmd/exdown
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+
+  - id: exmembers
+    main: ./cmd/exmembers
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
