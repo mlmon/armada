@@ -52,39 +52,23 @@ jobs:
 
     - name: Build and push exdown image
       env:
-        PLATFORMS: linux/amd64,linux/arm64
+        KO_DOCKER_REPO: ghcr.io/${{ github.repository }}/exdown
       run: |
-        # Generate tags for exdown
-        TAGS=""
-        for tag in ${{ steps.meta.outputs.tags }}; do
-          clean_tag=$(echo "$tag" | sed 's|dummy|exdown|')
-          TAGS="${TAGS}${clean_tag},"
-        done
-        TAGS=${TAGS%,}  # Remove trailing comma
-        
         ko build ./cmd/exdown \
-          --platform=${PLATFORMS} \
-          --tags=${TAGS} \
+          --platform=linux/amd64,linux/arm64 \
+          --tags=latest \
           --image-label=org.opencontainers.image.description="FastHTTP-based file downloader" \
           --image-label=org.opencontainers.image.vendor="mlmon" \
           --image-label=org.opencontainers.image.source="${{ github.server_url }}/${{ github.repository }}" \
           --image-label=org.opencontainers.image.revision="${{ github.sha }}"
 
-    - name: Build and push exmembers image
+    - name: Build and push exmembers image  
       env:
-        PLATFORMS: linux/amd64,linux/arm64
+        KO_DOCKER_REPO: ghcr.io/${{ github.repository }}/exmembers
       run: |
-        # Generate tags for exmembers
-        TAGS=""
-        for tag in ${{ steps.meta.outputs.tags }}; do
-          clean_tag=$(echo "$tag" | sed 's|dummy|exmembers|')
-          TAGS="${TAGS}${clean_tag},"
-        done
-        TAGS=${TAGS%,}  # Remove trailing comma
-        
         ko build ./cmd/exmembers \
-          --platform=${PLATFORMS} \
-          --tags=${TAGS} \
+          --platform=linux/amd64,linux/arm64 \
+          --tags=latest \
           --image-label=org.opencontainers.image.description="Memberlist-based cluster membership tool" \
           --image-label=org.opencontainers.image.vendor="mlmon" \
           --image-label=org.opencontainers.image.source="${{ github.server_url }}/${{ github.repository }}" \
