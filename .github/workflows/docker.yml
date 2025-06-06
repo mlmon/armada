@@ -67,7 +67,10 @@ jobs:
         platforms: linux/amd64,linux/arm64
         push: true
         tags: ${{ steps.meta-exdown.outputs.tags }}
-        labels: ${{ steps.meta-exdown.outputs.labels }}
+        labels: |
+          ${{ steps.meta-exdown.outputs.labels }}
+          org.opencontainers.image.description=FastHTTP-based file downloader
+          org.opencontainers.image.vendor=mlmon
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
@@ -79,6 +82,9 @@ jobs:
         platforms: linux/amd64,linux/arm64
         push: true
         tags: ${{ steps.meta-exmembers.outputs.tags }}
-        labels: ${{ steps.meta-exmembers.outputs.labels }}
+        labels: |
+          ${{ steps.meta-exmembers.outputs.labels }}
+          org.opencontainers.image.description=Memberlist-based cluster membership tool
+          org.opencontainers.image.vendor=mlmon
         cache-from: type=gha
         cache-to: type=gha,mode=max
