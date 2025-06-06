@@ -3,46 +3,54 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/valyala/fasthttp"
 )
 
 func main() {
+	srcURL := os.Getenv("SRC_URL")
+	if srcURL == "" {
+		srcURL = "https://httpbin.org/get"
+	}
+
+	destPath := os.Getenv("DEST_PATH")
+	if destPath == "" {
+		destPath = "/tmp/downloaded_file"
+	}
+
 	client := &fasthttp.Client{
-		ReadTimeout:  time.Second * 10,
-		WriteTimeout: time.Second * 10,
+		ReadTimeout:  time.Second * 30,
+		WriteTimeout: time.Second * 30,
 	}
 
-	urls := []string{
-		"https://httpbin.org/get",
-		"https://httpbin.org/status/200",
-		"https://httpbin.org/json",
+	req := fasthttp.AcquireRequest()
+	resp := fasthttp.AcquireResponse()
+	defer fasthttp.ReleaseRequest(req)
+	defer fasthttp.ReleaseResponse(resp)
+
+	req.SetRequestURI(srcURL)
+	req.Header.SetMethod(fasthttp.MethodGet)
+	req.Header.Set("User-Agent", "armada-exdown/1.0")
+
+	fmt.Printf("Downloading from: %s\n", srcURL)
+	fmt.Printf("Saving to: %s\n", destPath)
+
+	err := client.Do(req, resp)
+	if err != nil {
+		log.Fatalf("Error making request: %v", err)
 	}
 
-	for _, url := range urls {
-		req := fasthttp.AcquireRequest()
-		resp := fasthttp.AcquireResponse()
-		defer fasthttp.ReleaseRequest(req)
-		defer fasthttp.ReleaseResponse(resp)
-
-		req.SetRequestURI(url)
-		req.Header.SetMethod(fasthttp.MethodGet)
-		req.Header.Set("User-Agent", "armada-exdown/1.0")
-
-		fmt.Printf("Making request to: %s\n", url)
-
-		err := client.Do(req, resp)
-		if err != nil {
-			log.Printf("Error making request to %s: %v", url, err)
-			continue
-		}
-
-		fmt.Printf("Status: %d\n", resp.StatusCode())
-		fmt.Printf("Content-Type: %s\n", resp.Header.Peek("Content-Type"))
-		fmt.Printf("Body length: %d bytes\n", len(resp.Body()))
-		fmt.Println("---")
+	if resp.StatusCode() != 200 {
+		log.Fatalf("HTTP error: %d", resp.StatusCode())
 	}
 
-	fmt.Println("FastHTTP client example completed")
+	err = os.WriteFile(destPath, resp.Body(), 0644)
+	if err != nil {
+		log.Fatalf("Error writing file: %v", err)
+	}
+
+	fmt.Printf("Successfully downloaded %d bytes\n", len(resp.Body()))
+	fmt.Printf("Content-Type: %s\n", resp.Header.Peek("Content-Type"))
 }

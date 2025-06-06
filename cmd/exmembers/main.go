@@ -13,16 +13,29 @@ import (
 )
 
 func main() {
-	if len(os.Args) < 2 {
-		fmt.Println("Usage: exmembers <port> [join_address:port]")
-		fmt.Println("Example: exmembers 7946")
-		fmt.Println("Example: exmembers 7947 127.0.0.1:7946")
-		os.Exit(1)
+	var port int
+	var err error
+
+	// Check for PORT environment variable first
+	if portEnv := os.Getenv("PORT"); portEnv != "" {
+		port, err = strconv.Atoi(portEnv)
+		if err != nil {
+			log.Fatalf("Invalid PORT environment variable: %v", err)
+		}
+	} else if len(os.Args) >= 2 {
+		port, err = strconv.Atoi(os.Args[1])
+		if err != nil {
+			log.Fatalf("Invalid port argument: %v", err)
+		}
+	} else {
+		port = 7946 // Default port
 	}
 
-	port, err := strconv.Atoi(os.Args[1])
-	if err != nil {
-		log.Fatalf("Invalid port: %v", err)
+	var joinAddr string
+	if joinEnv := os.Getenv("JOIN_ADDR"); joinEnv != "" {
+		joinAddr = joinEnv
+	} else if len(os.Args) > 2 {
+		joinAddr = os.Args[2]
 	}
 
 	config := memberlist.DefaultLocalConfig()
@@ -35,8 +48,7 @@ func main() {
 		log.Fatalf("Failed to create memberlist: %v", err)
 	}
 
-	if len(os.Args) > 2 {
-		joinAddr := os.Args[2]
+	if joinAddr != "" {
 		fmt.Printf("Attempting to join cluster at %s\n", joinAddr)
 		_, err := list.Join([]string{joinAddr})
 		if err != nil {
