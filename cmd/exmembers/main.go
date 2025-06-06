@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"net"
 	"os"
 	"os/signal"
 	"strconv"
@@ -11,6 +12,17 @@ import (
 
 	"github.com/hashicorp/memberlist"
 )
+
+func getPrimaryInterfaceIP() (string, error) {
+	conn, err := net.Dial("udp", "8.8.8.8:80")
+	if err != nil {
+		return "", err
+	}
+	defer conn.Close()
+
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+	return localAddr.IP.String(), nil
+}
 
 func main() {
 	var port int
@@ -38,8 +50,14 @@ func main() {
 		joinAddr = os.Args[2]
 	}
 
+	// Get primary interface IP address for unique node naming
+	ipAddr, err := getPrimaryInterfaceIP()
+	if err != nil {
+		log.Fatalf("Failed to get primary interface IP: %v", err)
+	}
+
 	config := memberlist.DefaultLocalConfig()
-	config.Name = fmt.Sprintf("node-%d", port)
+	config.Name = fmt.Sprintf("node-%s", ipAddr)
 	config.BindPort = port
 	config.AdvertisePort = port
 
