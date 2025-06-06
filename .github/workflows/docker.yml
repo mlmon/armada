@@ -48,6 +48,7 @@ jobs:
         fi
         
         ko build ./cmd/exdown \
+          --bare \
           --platform=linux/amd64,linux/arm64 \
           --tags=${TAG} \
           --image-label=org.opencontainers.image.description="FastHTTP-based file downloader" \
@@ -67,6 +68,7 @@ jobs:
         fi
         
         ko build ./cmd/exmembers \
+          --bare \
           --platform=linux/amd64,linux/arm64 \
           --tags=${TAG} \
           --image-label=org.opencontainers.image.description="Memberlist-based cluster membership tool" \
